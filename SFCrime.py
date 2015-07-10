@@ -29,29 +29,31 @@ def visualize_data(df, column, title, items=0):
     col_freq.sort(ascending=True, inplace=True)
     draw_plot(col_freq[slice(-1, - items, -1)], title)
 
-def make_sets(data_df, test_portion):
-    import random as rnd
-
-    tot_ix = range(len(data_df))
-    test_ix = np.sort(rnd.sample(tot_ix, int(test_portion * len(data_df))))
-    train_ix = list(set(tot_ix) ^ set(test_ix))
-
-    test_df = data_df.ix[test_ix]
-    train_df = data_df.ix[train_ix]
-
-    return train_df, test_df
-
 if __name__ == '__main__':
     # Read in the Training Data
     df = pd.read_csv('Data/train.csv')
+    test_df = pd.read_csv('Data/test.csv')
+
 
     # Split this into Dev and Training Data
-    dev, train = make_sets(df, 0.2)
+    DEV_SIZE = 0.20
+
+    # Create boolean mask
+    # np.random creates a vector of random values between 0 and 1
+    # Those values are filtered to create a binary mask
+    msk = np.random.rand(len(df)) < DEV_SIZE
+
+    dev = df[msk]
+    train = df[~msk]  # inverse of boolean mask
+
+    print "Dev: " + str(dev.shape)
+    print "Train: " + str(train.shape)
+    print "Test: " + str(test_df.shape)
 
     # Visualize the entire dataset
-    visualize_data(df, 'category',   'Top Crime Categories')
-    visualize_data(df, 'resolution', 'Top Crime Resolutions')
-    visualize_data(df, 'pddistrict', 'Police Department Activity')
-    visualize_data(df, 'dayofweek',  'Days of the Week')
-    visualize_data(df, 'address',    'Top Crime Locations', items=20)
-    visualize_data(df, 'descript',   'Descriptions', items=20)
+    # visualize_data(df, 'category',   'Top Crime Categories')
+    # visualize_data(df, 'resolution', 'Top Crime Resolutions')
+    # visualize_data(df, 'pddistrict', 'Police Department Activity')
+    # visualize_data(df, 'dayofweek',  'Days of the Week')
+    # visualize_data(df, 'address',    'Top Crime Locations', items=20)
+    # visualize_data(df, 'descript',   'Descriptions', items=20)
