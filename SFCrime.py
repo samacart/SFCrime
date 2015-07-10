@@ -9,6 +9,7 @@ import seaborn as sns
 import matplotlib.pyplot as plt
 import numpy as np
 import operator
+from sklearn.naive_bayes import MultinomialNB,BernoulliNB,GaussianNB
 
 def draw_plot(df, title):
     bar = df.plot(kind='barh',
@@ -84,3 +85,17 @@ if __name__ == '__main__':
     dict['Address'] = address
 
     dev = dev.replace(dict)
+
+    model = GaussianNB()
+    model.fit(dev,dev_labels)
+
+    predicted = np.array(model.predict_proba(train))
+    labels = ['Id']
+    for i in model.classes_:
+        labels.append(i)
+
+    fo = csv.writer('GaussianNB.csv', lineterminator='\n')
+    fo.writerow(labels)
+
+    for i, pred in enumerate(predicted):
+        fo.writerow([i] + list(pred))
