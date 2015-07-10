@@ -31,8 +31,16 @@ def visualize_data(df, column, title, items=0):
 
 if __name__ == '__main__':
     # Read in the Training Data
-    df = pd.read_csv('Data/train.csv')
+    train_df = pd.read_csv('Data/train.csv')
     test_df = pd.read_csv('Data/test.csv')
+
+    # Visualize the entire dataset
+    # visualize_data(train_df, 'category',   'Top Crime Categories')
+    # visualize_data(train_df, 'resolution', 'Top Crime Resolutions')
+    # visualize_data(train_df, 'pddistrict', 'Police Department Activity')
+    # visualize_data(train_df, 'dayofweek',  'Days of the Week')
+    # visualize_data(train_df, 'address',    'Top Crime Locations', items=20)
+    # visualize_data(train_df, 'descript',   'Descriptions', items=20)
 
 
     # Split this into Dev and Training Data
@@ -41,19 +49,38 @@ if __name__ == '__main__':
     # Create boolean mask
     # np.random creates a vector of random values between 0 and 1
     # Those values are filtered to create a binary mask
-    msk = np.random.rand(len(df)) < DEV_SIZE
+    msk = np.random.rand(len(train_df)) < DEV_SIZE
 
-    dev = df[msk]
-    train = df[~msk]  # inverse of boolean mask
+    dev = train_df[msk]
+    dev_labels = dev.Category.values
+    dev = dev.drop(['Category','Dates','Descript','X','Y','Resolution'], axis=1)
+
+    train = train_df[~msk]  # inverse of boolean mask
+    train_labels = train.Category.values
+    train = train.drop(['Category','Dates','Descript','X','Y','Resolution'], axis=1)
 
     print "Dev: " + str(dev.shape)
     print "Train: " + str(train.shape)
     print "Test: " + str(test_df.shape)
 
-    # Visualize the entire dataset
-    # visualize_data(df, 'category',   'Top Crime Categories')
-    # visualize_data(df, 'resolution', 'Top Crime Resolutions')
-    # visualize_data(df, 'pddistrict', 'Police Department Activity')
-    # visualize_data(df, 'dayofweek',  'Days of the Week')
-    # visualize_data(df, 'address',    'Top Crime Locations', items=20)
-    # visualize_data(df, 'descript',   'Descriptions', items=20)
+    # Target Names are the categories
+    print train_labels
+
+    # Feature Names: address, dayofweek
+    days = {}
+    cnt=0
+    for i in np.unique(dev.DayOfWeek.values):
+        days[i] = cnt
+        cnt+=1
+
+    dict ={'DayOfWeek' : days}
+
+    address = {}
+    cnt=0
+    for i in np.unique(dev.Address.values):
+        address[i] = cnt
+        cnt+=1
+
+    dict['Address'] = address
+
+    dev = dev.replace(dict)
