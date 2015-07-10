@@ -85,7 +85,9 @@ if __name__ == '__main__':
     dict['Address'] = address
 
     dev = dev.replace(dict)
+    train = train.replace(dict)
 
+    print dev
     model = GaussianNB()
     model.fit(dev,dev_labels)
 
