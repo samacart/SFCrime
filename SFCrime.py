@@ -10,6 +10,8 @@ import matplotlib.pyplot as plt
 import numpy as np
 import operator
 from sklearn.naive_bayes import MultinomialNB,BernoulliNB,GaussianNB
+from sklearn import preprocessing
+import csv
 
 def draw_plot(df, title):
     bar = df.plot(kind='barh',
@@ -35,6 +37,16 @@ if __name__ == '__main__':
     train_df = pd.read_csv('Data/train.csv')
     test_df = pd.read_csv('Data/test.csv')
 
+    # Feature Names: address, dayofweek
+    le = preprocessing.LabelEncoder()
+    le.fit(np.unique(train_df.DayOfWeek.values))
+    train_df.DayOfWeek = le.transform(train_df.DayOfWeek)
+
+    le.fit(np.unique(train_df.Address.values))
+    train_df.Address = le.transform(train_df.Address)
+
+    print train_df.DayOfWeek.values
+
     # Visualize the entire dataset
     # visualize_data(train_df, 'category',   'Top Crime Categories')
     # visualize_data(train_df, 'resolution', 'Top Crime Resolutions')
@@ -54,11 +66,11 @@ if __name__ == '__main__':
 
     dev = train_df[msk]
     dev_labels = dev.Category.values
-    dev = dev.drop(['Category','Dates','Descript','X','Y','Resolution'], axis=1)
+    dev = dev.drop(['Category','Dates','Descript','X','Y','Resolution','PdDistrict'], axis=1)
 
     train = train_df[~msk]  # inverse of boolean mask
     train_labels = train.Category.values
-    train = train.drop(['Category','Dates','Descript','X','Y','Resolution'], axis=1)
+    train = train.drop(['Category','Dates','Descript','X','Y','Resolution','PdDistrict'], axis=1)
 
     print "Dev: " + str(dev.shape)
     print "Train: " + str(train.shape)
@@ -67,37 +79,17 @@ if __name__ == '__main__':
     # Target Names are the categories
     print train_labels
 
-    # Feature Names: address, dayofweek
-    days = {}
-    cnt=0
-    for i in np.unique(dev.DayOfWeek.values):
-        days[i] = cnt
-        cnt+=1
-
-    dict ={'DayOfWeek' : days}
-
-    address = {}
-    cnt=0
-    for i in np.unique(dev.Address.values):
-        address[i] = cnt
-        cnt+=1
-
-    dict['Address'] = address
-
-    dev = dev.replace(dict)
-    train = train.replace(dict)
-
-    print dev
     model = GaussianNB()
-    model.fit(dev,dev_labels)
+    model.fit(train,train_labels)
 
-    predicted = np.array(model.predict_proba(train))
+    predicted = np.array(model.predict_proba(dev))
     labels = ['Id']
     for i in model.classes_:
         labels.append(i)
 
-    fo = csv.writer('GaussianNB.csv', lineterminator='\n')
-    fo.writerow(labels)
+    with open('GaussianNB.csv', 'wb') as csvfile:
+        fo = csv.writer(csvfile, lineterminator='\n')
+        fo.writerow(labels)
 
-    for i, pred in enumerate(predicted):
-        fo.writerow([i] + list(pred))
+        for i, pred in enumerate(predicted):
+            fo.writerow([i] + list(pred))
